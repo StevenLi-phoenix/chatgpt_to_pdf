@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatGPT to PDF - 使用示例</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #10a37f;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #10a37f;
+            margin-top: 40px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .screenshot {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            margin: 20px auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .feature-item {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .feature-item h3 {
+            color: #10a37f;
+            margin-top: 0;
+        }
+        .steps {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .steps ol {
+            margin-left: 20px;
+            padding-left: 20px;
+        }
+        .steps li {
+            margin-bottom: 10px;
+        }
+        .note {
+            background-color: #fff8e1;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+        }
+        .button-example {
+            display: inline-block;
+            background-color: #10a37f;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            margin: 5px;
+            font-weight: bold;
+        }
+        .settings-modal-example {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .settings-modal-example h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .settings-modal-example label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        .settings-modal-example input, .settings-modal-example select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .code-example {
+            background-color: #f6f8fa;
+            border-radius: 6px;
+            padding: 16px;
+            overflow-x: auto;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 85%;
+            line-height: 1.45;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>ChatGPT to PDF - 使用示例</h1>
+    
+    <p>这个页面展示了 ChatGPT to PDF 油猴脚本的使用效果和界面截图。通过这个脚本，您可以轻松地将 ChatGPT 的对话导出为 PDF 文件，保留所有格式和样式。</p>
+    
+    <h2>界面展示</h2>
+    
+    <p>安装脚本后，ChatGPT 页面右下角会出现两个按钮：</p>
+    
+    <div style="text-align: center; margin: 20px 0;">
+        <span class="button-example">导出PDF</span>
+        <span class="button-example" style="margin-right: 10px;">设置</span>
+    </div>
+    
+    <p>点击"导出PDF"按钮，会立即将当前对话导出为PDF文件。点击"设置"按钮，会打开设置面板：</p>
+    
+    <div class="settings-modal-example">
+        <h3>PDF导出设置</h3>
+        
+        <label for="filename">文件名</label>
+        <input type="text" id="filename" value="ChatGPT对话记录.pdf">
+        
+        <label for="pageSize">页面大小</label>
+        <select id="pageSize">
+            <option value="a4" selected>A4</option>
+            <option value="letter">Letter</option>
+            <option value="legal">Legal</option>
+        </select>
+        
+        <label for="orientation">方向</label>
+        <select id="orientation">
+            <option value="portrait" selected>纵向</option>
+            <option value="landscape">横向</option>
+        </select>
+        
+        <label>
+            <input type="checkbox" id="includeTimestamp" checked>
+            包含时间戳
+        </label>
+        
+        <label>
+            <input type="checkbox" id="includeTitle" checked>
+            包含标题
+        </label>
+        
+        <div style="margin-top: 20px;">
+            <button style="background-color: #10a37f; color: white; border: none; border-radius: 4px; padding: 8px 16px; cursor: pointer; margin-right: 10px;">保存</button>
+            <button style="background-color: #f5f5f5; color: #333; border: 1px solid #ddd; border-radius: 4px; padding: 8px 16px; cursor: pointer;">取消</button>
+        </div>
+    </div>
+    
+    <h2>导出效果</h2>
+    
+    <p>导出的PDF文件会保留ChatGPT对话的所有格式和样式，包括：</p>
+    
+    <div class="feature-grid">
+        <div class="feature-item">
+            <h3>代码块</h3>
+            <p>保留代码格式和语法高亮，自动换行，不会被截断。</p>
+            <div class="code-example">
+                function helloWorld() {<br>
+                &nbsp;&nbsp;console.log("Hello, world!");<br>
+                }
+            </div>
+        </div>
+        
+        <div class="feature-item">
+            <h3>表格</h3>
+            <p>表格结构完整，边框和背景色保持一致。</p>
+        </div>
+        
+        <div class="feature-item">
+            <h3>图片</h3>
+            <p>图片完整显示，大小适应页面宽度，保持清晰度。</p>
+        </div>
+        
+        <div class="feature-item">
+            <h3>Markdown格式</h3>
+            <p>标题、列表、引用块等Markdown格式元素都能正确显示。</p>
+        </div>
+    </div>
+    
+    <h2>使用步骤</h2>
+    
+    <div class="steps">
+        <ol>
+            <li>安装Tampermonkey浏览器扩展</li>
+            <li>安装ChatGPT to PDF脚本</li>
+            <li>访问ChatGPT网站并进行对话</li>
+            <li>点击右下角的"导出PDF"按钮</li>
+            <li>等待PDF生成并自动下载</li>
+        </ol>
+    </div>
+    
+    <div class="note">
+        <strong>注意：</strong> 对于非常长的对话，可能需要一些时间来生成PDF。如果遇到问题，可以尝试刷新页面后重试。
+    </div>
+    
+    <h2>自定义选项</h2>
+    
+    <p>通过设置面板，您可以自定义以下选项：</p>
+    
+    <ul>
+        <li><strong>文件名</strong>：设置导出PDF的文件名</li>
+        <li><strong>页面大小</strong>：选择A4、Letter或Legal格式</li>
+        <li><strong>方向</strong>：选择纵向或横向</li>
+        <li><strong>包含时间戳</strong>：是否在PDF中包含导出时间</li>
+        <li><strong>包含标题</strong>：是否在PDF中包含"ChatGPT 对话记录"标题</li>
+    </ul>
+    
+    <p>所有设置会自动保存到浏览器的本地存储中，下次使用时自动加载。</p>
+    
+    <h2>安装方法</h2>
+    
+    <p>请参考<a href="README.md">README.md</a>文件中的详细安装步骤。</p>
+</body>
+</html> 
