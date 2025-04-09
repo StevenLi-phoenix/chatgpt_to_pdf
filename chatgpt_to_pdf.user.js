@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         [已废弃] ChatGPT to PDF
+// @name         ChatGPT to PDF
 // @namespace    http://tampermonkey.net/
-// @version      0.8
-// @description  [此脚本已废弃] 此脚本已不再维护，无法使用。ChatGPT界面变更导致此脚本无法正常工作。
-// @author       Your Name
+// @version      0.9
+// @description  导出ChatGPT对话记录为PDF, 有点不优雅，但是能用
+// @author       Steven Li
 // @match        https://chat.openai.com/*
 // @match        https://*.chatgpt.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=openai.com
@@ -490,6 +490,9 @@
                 }
             }
             
+            // 处理不兼容的颜色函数，转换为兼容的RGB格式
+            convertUnsupportedColors(pdfContainer);
+            
             // 临时添加到文档以进行渲染
             document.body.appendChild(pdfContainer);
             pdfContainer.style.position = 'absolute';
@@ -684,6 +687,156 @@
         // 所有方法都失败
         log('所有提取方法均失败');
         return [];
+    }
+
+    // 处理不兼容的颜色函数，转换为兼容的RGB格式
+    function convertUnsupportedColors(container) {
+        log('处理不兼容的颜色函数...');
+        
+        // 不兼容的颜色函数列表
+        const unsupportedColorFuncs = ['oklch', 'lab', 'lch', 'color-mix'];
+        const unsupportedColorRegex = new RegExp(`(${unsupportedColorFuncs.join('|')})\\([^)]+\\)`, 'gi');
+        
+        // 根据当前模式获取合适的颜色
+        const isDarkMode = document.documentElement.classList.contains('dark') || 
+                           document.body.classList.contains('dark-mode') ||
+                           window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        // 颜色映射表 - 更丰富的颜色替换方案
+        const colorMap = {
+            // 背景色
+            background: isDarkMode ? '#1e1e1e' : '#ffffff',
+            // 文本色
+            text: isDarkMode ? '#d4d4d4' : '#000000',
+            // 边框色
+            border: isDarkMode ? '#444444' : '#e5e5e5',
+            // 用户消息背景
+            userBackground: isDarkMode ? '#2d2d2d' : '#f7f7f8',
+            // 助手消息背景
+            assistantBackground: isDarkMode ? '#1e1e1e' : '#ffffff',
+            // 代码块背景
+            codeBackground: isDarkMode ? '#2d2d2d' : '#f6f8fa',
+            // 链接颜色
+            link: isDarkMode ? '#6cb5ff' : '#0366d6',
+            // 主题色
+            primary: isDarkMode ? '#10a37f' : '#10a37f',
+        };
+        
+        // 处理内联样式
+        const elementsWithStyle = container.querySelectorAll('*[style]');
+        elementsWithStyle.forEach(element => {
+            const style = element.getAttribute('style');
+            if (style && unsupportedColorFuncs.some(func => style.includes(func))) {
+                // 替换不兼容颜色为相应的RGB颜色
+                let newStyle = style.replace(unsupportedColorRegex, match => {
+                    // 根据颜色用途选择合适的替代色
+                    if (match.includes('background') || element.tagName === 'DIV' || element.tagName === 'SECTION') {
+                        return colorMap.background;
+                    } else if (element.tagName === 'A') {
+                        return colorMap.link;
+                    } else if (element.tagName === 'PRE' || element.tagName === 'CODE') {
+                        return colorMap.codeBackground;
+                    } else if (element.classList.contains('user-message')) {
+                        return colorMap.userBackground;
+                    } else if (element.classList.contains('assistant-message')) {
+                        return colorMap.assistantBackground;
+                    } else {
+                        // 默认文本颜色
+                        return colorMap.text;
+                    }
+                });
+                element.setAttribute('style', newStyle);
+            }
+        });
+        
+        // 处理嵌入式样式表
+        const styleElements = container.querySelectorAll('style');
+        styleElements.forEach(styleElement => {
+            let cssText = styleElement.textContent;
+            if (cssText && unsupportedColorFuncs.some(func => cssText.includes(func))) {
+                // 替换所有不兼容颜色为RGB
+                cssText = cssText.replace(unsupportedColorRegex, match => {
+                    // 根据选择器上下文判断需要的颜色
+                    if (match.includes('background')) {
+                        return colorMap.background;
+                    } else if (match.includes('color') && match.includes('a ')) {
+                        return colorMap.link;
+                    } else if (match.includes('border')) {
+                        return colorMap.border;
+                    } else if (match.includes('pre') || match.includes('code')) {
+                        return colorMap.codeBackground;
+                    } else if (match.includes('user-message')) {
+                        return colorMap.userBackground;
+                    } else if (match.includes('assistant-message')) {
+                        return colorMap.assistantBackground;
+                    } else {
+                        return colorMap.text;
+                    }
+                });
+                styleElement.textContent = cssText;
+            }
+        });
+        
+        // 处理可能含有不兼容颜色的内联SVG
+        const svgElements = container.querySelectorAll('svg');
+        svgElements.forEach(svg => {
+            const fillElements = svg.querySelectorAll('[fill]');
+            fillElements.forEach(el => {
+                const fill = el.getAttribute('fill');
+                if (fill && unsupportedColorFuncs.some(func => fill.includes(func))) {
+                    // SVG填充颜色通常是图标颜色
+                    el.setAttribute('fill', isDarkMode ? '#d4d4d4' : '#000000');
+                }
+            });
+            
+            const strokeElements = svg.querySelectorAll('[stroke]');
+            strokeElements.forEach(el => {
+                const stroke = el.getAttribute('stroke');
+                if (stroke && unsupportedColorFuncs.some(func => stroke.includes(func))) {
+                    // SVG描边颜色
+                    el.setAttribute('stroke', isDarkMode ? '#d4d4d4' : '#000000');
+                }
+            });
+        });
+        
+        // 为容器设置默认颜色，确保兼容暗色/亮色模式
+        if (isDarkMode) {
+            // 暗色模式颜色设置
+            container.style.backgroundColor = colorMap.background;
+            container.style.color = colorMap.text;
+            
+            // 更新用户和助手消息的样式
+            const userMessages = container.querySelectorAll('.user-message');
+            userMessages.forEach(msg => {
+                msg.style.backgroundColor = colorMap.userBackground;
+                msg.style.border = `1px solid ${colorMap.border}`;
+            });
+            
+            const assistantMessages = container.querySelectorAll('.assistant-message');
+            assistantMessages.forEach(msg => {
+                msg.style.backgroundColor = colorMap.assistantBackground;
+                msg.style.border = `1px solid ${colorMap.border}`;
+            });
+            
+            // 更新代码块样式
+            const codeBlocks = container.querySelectorAll('pre');
+            codeBlocks.forEach(block => {
+                block.style.backgroundColor = colorMap.codeBackground;
+                block.style.border = `1px solid ${colorMap.border}`;
+            });
+            
+            // 更新链接颜色
+            const links = container.querySelectorAll('a');
+            links.forEach(link => {
+                link.style.color = colorMap.link;
+            });
+        } else {
+            // 亮色模式颜色设置
+            container.style.backgroundColor = colorMap.background;
+            container.style.color = colorMap.text;
+        }
+        
+        log('颜色转换完成');
     }
 
     // 显示废弃提示
